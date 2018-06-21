@@ -485,11 +485,16 @@ def main():
     for (local_chunk, remote_chunk, chunk_md5) in remote_chunk_files:
         spin("removing file chunk " + local_chunk)
         os.remove(local_chunk)
-        try:
-            subprocess.call(['ssh', remote_server, 'rm', remote_chunk])
-        except CalledProcessError as e:
-            print(e.returncode)
-            print 'ERROR: failed to remove remote chunk ' + remote_chunk
+    try:
+        print "removing all remote chunks..."
+        remote_chunk_wildcard = remote_chunk[:-4] + '*'
+        remote_chunk_md5 = remote_chunk[:-5] + 'md5'
+        subprocess.call(['ssh', remote_server, 'rm', remote_chunk_wildcard])
+        subprocess.call(['ssh', remote_server, 'rm', remote_chunk_md5])
+
+    except CalledProcessError as e:
+        print(e.returncode)
+        print 'ERROR: failed to remove remote chunk ' + remote_chunk
     print ''
     print "transfer complete"
     end_time = time.time()

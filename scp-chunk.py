@@ -10,9 +10,9 @@ from subprocess import CalledProcessError
 from threading import Thread
 from Queue import Queue
 
-default_num_threads = 3
-default_retries = 0
-default_cypher = 'arcfour'
+default_num_threads = 4
+default_retries = 2
+default_cypher = 'aes256-ctr'
 split_file_basename = 'chunk_'
 
 INTERVALS = [1, 60, 3600, 86400, 604800, 2419200, 29030400]
@@ -329,7 +329,7 @@ def main():
                         required=False)
     parser.add_argument('-s', '--size',
                         help='size of chunks to transfer.',
-                        default='500M',
+                        default='20M',
                         required=False,
                         type=human_sizes)
     parser.add_argument('-r', '--retries',
@@ -397,9 +397,9 @@ def main():
         with open(checksum_filename, 'w+') as checksum_file:
             checksum_file.write(src_file_md5 + ' ' + src_filename)
         print 'copying ' + src_file + ' to ' + dest_checksum_filename
-        subprocess.check_call(['scp', '-c' + ssh_crypto, '-q',
+        subprocess.check_call(['scp', '-o Cipher=' + ssh_crypto, '-q',
                                 '-oBatchMode=yes', checksum_filename,
-                                remote_server + ':' + \
+                                remote_server + ':' +
                                 dest_checksum_filename])
     except CalledProcessError as e:
         print(e.returncode)
@@ -438,6 +438,7 @@ def main():
     print "re-assembling file at remote end"
     remote_chunk_start_time = time.time()
     chunk_count = 0
+
     for (chunk_filename, chunk_md5) in chunk_infos:
         (path, remote_chunk_filename) = os.path.split(chunk_filename)
 

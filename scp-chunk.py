@@ -439,20 +439,24 @@ def main():
     remote_chunk_start_time = time.time()
     chunk_count = 0
 
+    cat_cmd = ""
     for (chunk_filename, chunk_md5) in chunk_infos:
         (path, remote_chunk_filename) = os.path.split(chunk_filename)
-
+        cat_cmd = cat_cmd + ' ' + remote_chunk_filename
         remote_chunk_file = os.path.join(dest_path, remote_chunk_filename)
-
-        spin('processing ' + remote_chunk_filename)
-        if chunk_count:
-            cmd = remote_chunk_file + '>> ' + remote_dest_file
-        else:
-            #truncate if the first chunk
-            cmd = remote_chunk_file + '> ' + remote_dest_file
-
-        subprocess.call(['ssh', remote_server, 'cat', cmd])
         chunk_count += 1
+
+    # spin('processing ' + remote_chunk_filename)
+        # if chunk_count:
+        #     cmd = remote_chunk_file + '>> ' + remote_dest_file
+        # else:
+        #     #truncate if the first chunk
+        #     cmd = remote_chunk_file + '> ' + remote_dest_file
+    cat_cmd = cat_cmd + ' > ' + remote_dest_file
+    print 'ssh', remote_server, 'cat', cat_cmd
+    subprocess.call(['ssh', remote_server, 'cat', cat_cmd])
+
+    print "cat_cmd " + cat_cmd
     print
     print 're-assembled'
     remote_chunk_end_time = time.time()
